@@ -8,13 +8,12 @@ import org.gradle.api.Project
 interface CompatibilityPredicate {
     fun matches(ide: Ide): Boolean
 
-    operator fun invoke(block: () -> Unit): Any? {
+    operator fun invoke(): Boolean = matches(IdeVersionConfigurator.currentIde)
+
+    operator fun invoke(block: () -> Unit): Unit {
         if (matches(IdeVersionConfigurator.currentIde)) {
             block()
-            return emptyList()
         }
-
-        return null
     }
 }
 
@@ -27,7 +26,7 @@ fun CompatibilityPredicate.or(other: CompatibilityPredicate): CompatibilityPredi
 }
 
 enum class Platform : CompatibilityPredicate {
-    P173, P181, P182, P183;
+    P173, P181, P182, P183, P191;
 
     val version: Int = name.drop(1).toInt()
 
@@ -46,10 +45,12 @@ enum class Ide(val platform: Platform) : CompatibilityPredicate {
     IJ181(Platform.P181),
     IJ182(Platform.P182),
     IJ183(Platform.P183),
+    IJ191(Platform.P191),
 
     AS31(Platform.P173),
     AS32(Platform.P181),
-    AS33(Platform.P182);
+    AS33(Platform.P182),
+    AS34(Platform.P191);
 
     val kind = Kind.values().first { it.shortName == name.take(2) }
     val version = name.dropWhile { !it.isDigit() }.toInt()
