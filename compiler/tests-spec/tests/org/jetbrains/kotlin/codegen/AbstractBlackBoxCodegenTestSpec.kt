@@ -5,13 +5,11 @@
 
 package org.jetbrains.kotlin.codegen
 
+import org.jetbrains.kotlin.spec.parsers.CommonParser
+import org.jetbrains.kotlin.spec.parsers.CommonPatterns.packagePattern
 import org.jetbrains.kotlin.spec.utils.GeneralConfiguration.TESTDATA_PATH
-import java.io.File
-import org.jetbrains.kotlin.spec.validators.AbstractSpecTestValidator
-import org.jetbrains.kotlin.spec.validators.SpecTestValidationException
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
-import org.junit.Assert
-import java.util.regex.Pattern
+import java.io.File
 
 abstract class AbstractBlackBoxCodegenTestSpec : AbstractBlackBoxCodegenTest() {
     companion object {
@@ -24,8 +22,6 @@ abstract class AbstractBlackBoxCodegenTestSpec : AbstractBlackBoxCodegenTest() {
         private val helperDirectives = mapOf(
             "REFLECT" to "reflect.kt"
         )
-        private val packagePattern =
-            Pattern.compile("""(?:^|${AbstractSpecTestValidator.lineSeparator})package (?<packageName>.*?)(?:;|${AbstractSpecTestValidator.lineSeparator})""")
     }
 
     private fun addPackageDirectiveToHelperFile(helperContent: String, packageName: String?) =
@@ -49,15 +45,9 @@ abstract class AbstractBlackBoxCodegenTestSpec : AbstractBlackBoxCodegenTest() {
     }
 
     override fun doMultiFileTest(wholeFile: File, files: MutableList<TestFile>, javaFilesDir: File?) {
-        val testValidator = AbstractSpecTestValidator.getInstanceByType(wholeFile)
+        val (specTest, _) = CommonParser.parseSpecTest(wholeFile.canonicalPath, mapOf("main.kt" to wholeFile.readText()))
 
-        try {
-            testValidator.parseTestInfo()
-        } catch (e: SpecTestValidationException) {
-            Assert.fail(e.description)
-        }
-
-        testValidator.printTestInfo()
+        println(specTest)
 
         includeHelpers(wholeFile, files)
 
