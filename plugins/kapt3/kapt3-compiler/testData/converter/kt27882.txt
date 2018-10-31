@@ -1,0 +1,211 @@
+package test;
+
+import java.lang.System;
+
+@kotlin.Metadata()
+public final class Id<TYPE extends test.Node<? extends TYPE>> {
+    private final long id = 0L;
+    @org.jetbrains.annotations.NotNull()
+    private final java.lang.Class<? extends TYPE> type = null;
+
+    public final long getId() {
+        return 0L;
+    }
+
+    @org.jetbrains.annotations.NotNull()
+    public final java.lang.Class<? extends TYPE> getType() {
+        return null;
+    }
+
+    public Id(long id, @org.jetbrains.annotations.NotNull()
+    java.lang.Class<? extends TYPE> type) {
+        super();
+    }
+
+    public final long component1() {
+        return 0L;
+    }
+
+    @org.jetbrains.annotations.NotNull()
+    public final java.lang.Class<? extends TYPE> component2() {
+        return null;
+    }
+
+    @org.jetbrains.annotations.NotNull()
+    public final test.Id<TYPE> copy(long id, @org.jetbrains.annotations.NotNull()
+    java.lang.Class<? extends TYPE> type) {
+        return null;
+    }
+
+    @org.jetbrains.annotations.NotNull()
+    @java.lang.Override()
+    public java.lang.String toString() {
+        return null;
+    }
+
+    @java.lang.Override()
+    public int hashCode() {
+        return 0;
+    }
+
+    @java.lang.Override()
+    public boolean equals(@org.jetbrains.annotations.Nullable()
+    java.lang.Object p0) {
+        return false;
+    }
+}
+
+////////////////////
+
+package test;
+
+import java.lang.System;
+
+@kotlin.Metadata()
+public abstract interface Node<T extends test.Node<? extends T>> {
+
+    @org.jetbrains.annotations.NotNull()
+    public abstract test.Id<T> getId();
+}
+
+////////////////////
+
+package test;
+
+import java.lang.System;
+
+@kotlin.Metadata()
+public final class NodeCollection<NODE extends test.Node<? extends NODE>> implements java.util.Collection<NODE>, java.util.Map<test.Id<? extends NODE>, NODE>, kotlin.jvm.internal.markers.KMappedMarker {
+    private final java.util.HashMap<test.Id<NODE>, NODE> nodes = null;
+
+    @java.lang.Override()
+    public boolean isEmpty() {
+        return false;
+    }
+
+    @java.lang.Override()
+    public int getSize() {
+        return 0;
+    }
+
+    @java.lang.Override()
+    public final int size() {
+        return 0;
+    }
+
+    @java.lang.Override()
+    public boolean equals(@org.jetbrains.annotations.Nullable()
+    java.lang.Object other) {
+        return false;
+    }
+
+    @java.lang.Override()
+    public int hashCode() {
+        return 0;
+    }
+
+    @org.jetbrains.annotations.NotNull()
+    @java.lang.Override()
+    public java.lang.String toString() {
+        return null;
+    }
+
+    private NodeCollection(java.util.HashMap<test.Id<NODE>, NODE> nodes) {
+        super();
+    }
+
+    public NodeCollection(@org.jetbrains.annotations.NotNull()
+    java.util.Collection<? extends NODE> nodeList) {
+        super();
+    }
+
+    @java.lang.Override()
+    public boolean contains(@org.jetbrains.annotations.NotNull()
+    NODE element) {
+        return false;
+    }
+
+    @java.lang.Override()
+    public final boolean contains(java.lang.Object p0) {
+        return false;
+    }
+
+    @java.lang.Override()
+    public boolean containsAll(@org.jetbrains.annotations.NotNull()
+    java.util.Collection<? extends java.lang.Object> elements) {
+        return false;
+    }
+
+    @org.jetbrains.annotations.NotNull()
+    @java.lang.Override()
+    public java.util.Iterator<NODE> iterator() {
+        return null;
+    }
+
+    @org.jetbrains.annotations.NotNull()
+    @java.lang.Override()
+    public java.util.Set<java.util.Map.Entry<test.Id<NODE>, NODE>> getEntries() {
+        return null;
+    }
+
+    @java.lang.Override()
+    public final java.util.Set<java.util.Map.Entry<test.Id<NODE>, NODE>> entrySet() {
+        return null;
+    }
+
+    @org.jetbrains.annotations.NotNull()
+    @java.lang.Override()
+    public java.util.Set<test.Id<NODE>> getKeys() {
+        return null;
+    }
+
+    @java.lang.Override()
+    public final java.util.Set<test.Id<NODE>> keySet() {
+        return null;
+    }
+
+    @org.jetbrains.annotations.NotNull()
+    @java.lang.Override()
+    public java.util.Collection<NODE> getValues() {
+        return null;
+    }
+
+    @java.lang.Override()
+    public final java.util.Collection<NODE> values() {
+        return null;
+    }
+
+    @java.lang.Override()
+    public boolean containsKey(@org.jetbrains.annotations.NotNull()
+    test.Id<? extends NODE> key) {
+        return false;
+    }
+
+    @java.lang.Override()
+    public final boolean containsKey(java.lang.Object p0) {
+        return false;
+    }
+
+    @java.lang.Override()
+    public boolean containsValue(@org.jetbrains.annotations.NotNull()
+    NODE value) {
+        return false;
+    }
+
+    @java.lang.Override()
+    public final boolean containsValue(java.lang.Object p0) {
+        return false;
+    }
+
+    @org.jetbrains.annotations.Nullable()
+    @java.lang.Override()
+    public NODE get(@org.jetbrains.annotations.NotNull()
+    test.Id<? extends NODE> key) {
+        return null;
+    }
+
+    @java.lang.Override()
+    public final NODE get(java.lang.Object p0) {
+        return null;
+    }
+}
