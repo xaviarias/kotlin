@@ -32,7 +32,7 @@ if not "%_KOTLIN_RUNNER%"=="" (
     org.jetbrains.kotlin.runner.Main %*
 ) else if not "%_KOTLIN_TOOL%"=="" (
   "%_JAVACMD%" %JAVA_OPTS% -noverify -cp "%_KOTLIN_HOME%\lib\kotlin-preloader.jar" ^
-      org.jetbrains.kotlin.preloading.Preloader -cp "%_KOTLIN_HOME%\lib\kotlin-compiler.jar:%_KOTLIN_HOME%\lib\%_KOTLIN_TOOL%" ^
+      org.jetbrains.kotlin.preloading.Preloader -cp "%_KOTLIN_HOME%\lib\kotlin-compiler.jar;%_KOTLIN_HOME%\lib\%_KOTLIN_TOOL%" ^
       %_KOTLIN_COMPILER% %*
 ) else (
   "%_JAVACMD%" %JAVA_OPTS% -noverify -cp "%_KOTLIN_HOME%\lib\kotlin-preloader.jar" ^
