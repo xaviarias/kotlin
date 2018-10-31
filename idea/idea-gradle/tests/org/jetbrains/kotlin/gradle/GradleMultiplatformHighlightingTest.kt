@@ -18,6 +18,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import org.jetbrains.kotlin.idea.codeInsight.gradle.GradleImportingTestCase
 import org.jetbrains.kotlin.test.testFramework.runInEdtAndWait
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
+import org.jetbrains.plugins.gradle.settings.DistributionType
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.tooling.annotation.TargetVersions
 import org.junit.Assert
 import org.junit.Test
@@ -43,6 +46,8 @@ class GradleMultiplatformHighlightingTest : GradleImportingTestCase() {
         checkFiles(files, project) { editor ->
             daemonAnalyzerTestCase.checkHighlighting(project, editor)
         }
+
+        doTestProjectBuild()
     }
 
     private val daemonAnalyzerTestCase = object : DaemonAnalyzerTestCase() {
@@ -110,6 +115,15 @@ class GradleMultiplatformHighlightingTest : GradleImportingTestCase() {
         PsiDocumentManager.getInstance(project).commitAllDocuments()
         DaemonCodeAnalyzer.getInstance(project).restart()
         return editor
+    }
+
+    private fun doTestProjectBuild() {
+        val settings = GradleExecutionSettings(null, null, DistributionType.DEFAULT_WRAPPED, false)
+        val taskName = "build"
+        println("Running project task: $taskName")
+        GradleExecutionHelper().execute(currentExternalProjectSettings.toString(), settings) {
+            it.newBuild().forTasks(taskName).run()
+        }
     }
 
     override fun testDataDirName(): String {
