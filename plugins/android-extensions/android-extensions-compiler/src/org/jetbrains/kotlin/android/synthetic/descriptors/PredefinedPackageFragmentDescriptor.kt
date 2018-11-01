@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.android.synthetic.descriptors
 
+import com.intellij.openapi.util.ClearableLazyValue
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -30,12 +31,17 @@ import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.utils.Printer
 
 class PredefinedPackageFragmentDescriptor(
-        fqName: String,
+        fqName: FqName,
         module: ModuleDescriptor,
         storageManager: StorageManager,
-        val subpackages: List<PackageFragmentDescriptor> = emptyList(),
+        val subpackages: List<LazyAndroidExtensionsPackageFragmentDescriptor> = emptyList(),
         private val functions: (PredefinedPackageFragmentDescriptor) -> Collection<SimpleFunctionDescriptor> = { emptyList() }
-) : PackageFragmentDescriptorImpl(module, FqName(fqName)) {
+) : PackageFragmentDescriptorImpl(module, fqName) {
+    class LazyAndroidExtensionsPackageFragmentDescriptor(
+        val descriptor: ClearableLazyValue<PackageFragmentDescriptor>,
+        val isDeprecated: Boolean
+    )
+
     private val calculatedFunctions = storageManager.createLazyValue {
         functions(this)
     }
