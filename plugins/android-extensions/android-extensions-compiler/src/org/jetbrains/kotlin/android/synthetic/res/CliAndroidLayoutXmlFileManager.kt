@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.android.synthetic.res
 
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.android.synthetic.AndroidXmlHandler
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import java.io.ByteArrayInputStream
 import javax.xml.parsers.SAXParser
 import javax.xml.parsers.SAXParserFactory
@@ -32,7 +31,7 @@ class CliAndroidLayoutXmlFileManager(
 
     private val saxParser: SAXParser = initSAX()
 
-    override fun doExtractResources(layoutGroup: AndroidLayoutGroupData, module: ModuleDescriptor): AndroidLayoutGroup {
+    override fun doExtractResources(layoutGroup: AndroidLayoutGroupData): AndroidLayoutGroup {
         val layouts = layoutGroup.layouts.map { layout ->
             val resources = arrayListOf<AndroidResource>()
 
