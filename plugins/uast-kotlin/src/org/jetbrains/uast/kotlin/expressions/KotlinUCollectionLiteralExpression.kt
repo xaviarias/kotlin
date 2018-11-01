@@ -5,10 +5,7 @@
 
 package org.jetbrains.uast.kotlin.expressions
 
-import com.intellij.psi.PsiArrayType
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiType
+import com.intellij.psi.*
 import org.jetbrains.kotlin.psi.KtCollectionLiteralExpression
 import org.jetbrains.uast.*
 import org.jetbrains.uast.kotlin.KotlinAbstractUExpression
@@ -18,7 +15,7 @@ import org.jetbrains.uast.kotlin.KotlinUElementWithType
 class KotlinUCollectionLiteralExpression(
     override val sourcePsi: KtCollectionLiteralExpression,
     givenParent: UElement?
-) : KotlinAbstractUExpression(givenParent), UCallExpressionEx, KotlinUElementWithType {
+) : KotlinAbstractUExpression(givenParent), UCallExpressionEx, UMultiResolvable, KotlinUElementWithType {
 
     override val classReference: UReferenceExpression? get() = null
 
@@ -53,4 +50,5 @@ class KotlinUCollectionLiteralExpression(
 
     override fun getArgumentForParameter(i: Int): UExpression? = valueArguments.getOrNull(i)
 
+    override fun multiResolve(): Iterable<ResolveResult> = emptyList()
 }

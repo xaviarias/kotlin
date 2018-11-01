@@ -18,6 +18,7 @@ package org.jetbrains.uast.kotlin
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiType
+import com.intellij.psi.ResolveResult
 import org.jetbrains.kotlin.psi.ValueArgument
 import org.jetbrains.uast.*
 
@@ -60,7 +61,7 @@ class KotlinUNamedExpression private constructor(
 class KotlinUVarargExpression(
     private val valueArgs: List<ValueArgument>,
     uastParent: UElement?
-) : KotlinAbstractUExpression(uastParent), UCallExpressionEx {
+) : KotlinAbstractUExpression(uastParent), UCallExpressionEx, UMultiResolvable {
     override val kind: UastCallKind = UastCallKind.NESTED_ARRAY_INITIALIZER
 
     override val valueArguments: List<UExpression> by lz {
@@ -104,4 +105,6 @@ class KotlinUVarargExpression(
 
     override val receiverType: PsiType?
         get() = null
+
+    override fun multiResolve(): Iterable<ResolveResult> = emptyList()
 }

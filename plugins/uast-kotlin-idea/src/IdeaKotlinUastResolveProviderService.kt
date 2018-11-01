@@ -22,14 +22,22 @@ import org.jetbrains.kotlin.codegen.state.IncompatibleClassTracker
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
+import org.jetbrains.kotlin.idea.codeInsight.ReferenceVariantsHelper
+import org.jetbrains.kotlin.idea.core.isVisible
 import org.jetbrains.kotlin.idea.project.TargetPlatformDetector
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
+import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatform
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.uast.kotlin.KotlinUastResolveProviderService
 
 class IdeaKotlinUastResolveProviderService : KotlinUastResolveProviderService {
@@ -50,5 +58,27 @@ class IdeaKotlinUastResolveProviderService : KotlinUastResolveProviderService {
 
     override fun getLanguageVersionSettings(element: KtElement): LanguageVersionSettings {
         return element.languageVersionSettings
+    }
+
+    override fun getReferenceVariants(ktElement: KtElement, nameHint: String): Sequence<DeclarationDescriptor> {
+        val resolutionFacade = ktElement.getResolutionFacade()
+        val bindingContext = ktElement.analyze()
+
+        fun isVisible(descriptor: DeclarationDescriptor): Boolean =
+            descriptor !is DeclarationDescriptorWithVisibility || descriptor.isVisible(
+                ktElement,
+                null,
+                bindingContext,
+                resolutionFacade
+            )
+
+        val helper = ReferenceVariantsHelper(bindingContext, resolutionFacade, resolutionFacade.moduleDescriptor, ::isVisible, emptySet())
+        val callTypeAndReceiver = (ktElement as? KtSimpleNameExpression)?.let { CallTypeAndReceiver.detect(it) }
+
+        return helper.getReferenceVariants(
+            ktElement,
+            callTypeAndReceiver ?: CallTypeAndReceiver.DEFAULT,
+            DescriptorKindFilter.ALL,
+            { it.asString() == nameHint }).asSequence()
     }
 }

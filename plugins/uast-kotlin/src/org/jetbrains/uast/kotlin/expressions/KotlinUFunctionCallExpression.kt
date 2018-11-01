@@ -20,6 +20,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiType
+import com.intellij.psi.util.PsiTypesUtil
+import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -33,13 +35,15 @@ import org.jetbrains.kotlin.resolve.calls.model.VariableAsFunctionResolvedCall
 import org.jetbrains.uast.*
 import org.jetbrains.uast.internal.acceptList
 import org.jetbrains.uast.kotlin.declarations.KotlinUIdentifier
+import org.jetbrains.uast.kotlin.internal.TypedResolveResult
+import org.jetbrains.uast.kotlin.internal.getReferenceVariants
 import org.jetbrains.uast.visitor.UastVisitor
 
 class KotlinUFunctionCallExpression(
         override val psi: KtCallElement,
         givenParent: UElement?,
         private val _resolvedCall: ResolvedCall<*>?
-) : KotlinAbstractUExpression(givenParent), UCallExpressionEx, KotlinUElementWithType {
+) : KotlinAbstractUExpression(givenParent), UCallExpressionEx, KotlinUElementWithType, UMultiResolvable {
 
     constructor(psi: KtCallElement, uastParent: UElement?) : this(psi, uastParent, null)
 
@@ -80,12 +84,37 @@ class KotlinUFunctionCallExpression(
     override val valueArguments by lz { psi.valueArguments.map { KotlinConverter.convertOrEmpty(it.getArgumentExpression(), this) } }
 
     override fun getArgumentForParameter(i: Int): UExpression? {
-        val resolvedCall = resolvedCall ?: return null
-        val actualParamIndex = if (resolvedCall.extensionReceiver == null) i else i - 1
-        if (actualParamIndex == -1) return receiver
-        return getArgumentExpressionByIndex(actualParamIndex, resolvedCall, this)
+        val resolvedCall = resolvedCall
+        if (resolvedCall != null) {
+            val actualParamIndex = if (resolvedCall.extensionReceiver == null) i else i - 1
+            if (actualParamIndex == -1) return receiver
+            return getArgumentExpressionByIndex(actualParamIndex, resolvedCall, this)
+        }
+        val argument = valueArguments.getOrNull(i) ?: return null
+        val argumentType = argument.getExpressionType()
+        for (resolveResult in multiResolve()) {
+            val psiMethod = resolveResult.element as? PsiMethod ?: continue
+            val psiParameter = psiMethod.parameterList.parameters.getOrNull(i) ?: continue
+
+            if (argumentType == null || psiParameter.type.isAssignableFrom(argumentType))
+                return argument
+        }
+        return null
     }
 
+    override fun getExpressionType(): PsiType? {
+        super<KotlinAbstractUExpression>.getExpressionType()?.let { return it }
+        for (resolveResult in multiResolve()) {
+            val psiMethod = resolveResult.element
+            when {
+                psiMethod.isConstructor ->
+                    psiMethod.containingClass?.let { return PsiTypesUtil.getClassType(it) }
+                else ->
+                    psiMethod.returnType?.let { return it }
+            }
+        }
+        return null
+    }
 
     override val typeArgumentCount: Int
         get() = psi.typeArguments.size
@@ -131,6 +160,20 @@ class KotlinUFunctionCallExpression(
 
         }
 
+    override fun multiResolve(): Iterable<TypedResolveResult<PsiMethod>> {
+        val contextElement = psi
+        val methodName = methodName ?: contextElement.calleeExpression?.text ?: return emptyList()
+        val calleeExpression = contextElement.calleeExpression ?: return emptyList()
+        val variants = getReferenceVariants(calleeExpression, methodName)
+        return variants.flatMap {
+            when (val source = it.toSource()) {
+                is KtClass -> source.toLightClass()?.constructors?.asSequence().orEmpty()
+                else -> resolveSource(psi, it, source)?.let { sequenceOf(it) }.orEmpty()
+            }
+        }.map { TypedResolveResult(it) }.asIterable()
+    }
+
+
     override fun resolve(): PsiMethod? {
         val descriptor = resolvedCall?.resultingDescriptor ?: return null
         val source = descriptor.toSource()
@@ -166,6 +209,7 @@ class KotlinUFunctionCallExpression(
     }
 
 }
+
 
 internal fun getArgumentExpressionByIndex(
     actualParamIndex: Int,

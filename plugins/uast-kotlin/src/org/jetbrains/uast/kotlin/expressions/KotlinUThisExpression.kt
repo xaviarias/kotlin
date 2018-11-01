@@ -22,11 +22,12 @@ import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UIdentifier
 import org.jetbrains.uast.UThisExpression
 import org.jetbrains.uast.kotlin.declarations.KotlinUIdentifier
+import org.jetbrains.uast.kotlin.internal.DelegatedMultiResolve
 
 class KotlinUThisExpression(
         override val psi: KtThisExpression,
         givenParent: UElement?
-) : KotlinAbstractUExpression(givenParent), UThisExpression, KotlinUElementWithType, KotlinEvaluatableUElement {
+) : KotlinAbstractUExpression(givenParent), UThisExpression, DelegatedMultiResolve, KotlinUElementWithType, KotlinEvaluatableUElement {
     override val label: String?
         get() = psi.getLabelName()
 
