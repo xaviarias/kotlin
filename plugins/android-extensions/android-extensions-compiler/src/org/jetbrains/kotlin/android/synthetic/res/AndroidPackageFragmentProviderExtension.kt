@@ -68,7 +68,7 @@ abstract class AndroidPackageFragmentProviderExtension : PackageFragmentProvider
 
                     val lazyPackageDescriptor = ClearableLazyValue.create<PackageFragmentDescriptor> {
                         val packageData = AndroidSyntheticPackageData(moduleData, forView, isDeprecated) {
-                            layoutXmlFileManager.extractResources(AndroidLayoutGroupData(layoutName, layouts), module)
+                            layoutXmlFileManager.extractResources(AndroidLayoutGroupData(layoutName, layouts))
                         }
 
                         AndroidSyntheticPackageFragmentDescriptor(
