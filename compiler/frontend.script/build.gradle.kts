@@ -21,7 +21,3 @@ sourceSets {
     "main" { projectDefault() }
     "test" {}
 }
-
-kotlin {
-    experimental.coroutines = Coroutines.ENABLE
-}

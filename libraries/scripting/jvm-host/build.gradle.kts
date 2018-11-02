@@ -25,8 +25,6 @@ sourceSets {
     "test" { projectDefault() }
 }
 
-kotlin.experimental.coroutines = Coroutines.ENABLE
-
 standardPublicJars()
 
 publish()

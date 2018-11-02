@@ -18,8 +18,6 @@ sourceSets {
     "test" {}
 }
 
-kotlin.experimental.coroutines = Coroutines.ENABLE
-
 val jar = runtimeJar()
 val sourcesJar = sourcesJar()
 val javadocJar = javadocJar()
