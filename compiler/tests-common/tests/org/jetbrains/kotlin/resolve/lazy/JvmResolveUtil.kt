@@ -46,7 +46,7 @@ object JvmResolveUtil {
 
     @JvmStatic
     fun analyzeAndCheckForErrors(files: Collection<KtFile>, environment: KotlinCoreEnvironment): AnalysisResult =
-        analyzeAndCheckForErrors(environment.project, files, environment.configuration, environment::createPackagePartProvider)
+        analyzeAndCheckForErrors(environment.project, files, environment.configuration, environment.createPackagePartProvider)
 
     @JvmStatic
     fun analyzeAndCheckForErrors(
@@ -79,7 +79,7 @@ object JvmResolveUtil {
 
     @JvmStatic
     fun analyze(files: Collection<KtFile>, environment: KotlinCoreEnvironment, configuration: CompilerConfiguration): AnalysisResult =
-        analyze(environment.project, files, configuration, environment::createPackagePartProvider)
+        analyze(environment.project, files, configuration, environment.createPackagePartProvider)
 
     private fun analyze(
         project: Project,

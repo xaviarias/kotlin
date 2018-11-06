@@ -331,7 +331,7 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
                     this.languageVersionSettings = languageVersionSettings
                     this.put(JVMConfigurationKeys.JVM_TARGET, jvmTarget)
                 },
-                environment::createPackagePartProvider
+                environment.createPackagePartProvider
             )
         }
 

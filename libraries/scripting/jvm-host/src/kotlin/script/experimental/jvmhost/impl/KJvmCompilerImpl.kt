@@ -142,7 +142,7 @@ class KJvmCompilerImpl(val hostConfiguration: ScriptingHostConfiguration) : KJvm
                     sourceFiles,
                     NoScopeRecordCliBindingTrace(),
                     environment.configuration,
-                    environment::createPackagePartProvider
+                    environment.createPackagePartProvider
                 )
             }
             val analysisResult = analyzerWithCompilerReport.analysisResult

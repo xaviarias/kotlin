@@ -19,12 +19,13 @@ package org.jetbrains.kotlin.cli.common
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageUtil
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCompilerEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.isSubpackageOf
 import org.jetbrains.kotlin.psi.KtFile
 
-fun checkKotlinPackageUsage(environment: KotlinCoreEnvironment, files: Collection<KtFile>): Boolean {
+fun checkKotlinPackageUsage(environment: KotlinCompilerEnvironment, files: Collection<KtFile>): Boolean {
     if (environment.configuration.getBoolean(CLIConfigurationKeys.ALLOW_KOTLIN_PACKAGE)) {
         return true
     }

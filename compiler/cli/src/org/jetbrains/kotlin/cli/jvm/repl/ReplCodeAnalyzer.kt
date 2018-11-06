@@ -66,7 +66,7 @@ class ReplCodeAnalyzer(environment: KotlinCoreEnvironment) {
             emptyList(),
             trace,
             environment.configuration,
-            environment::createPackagePartProvider,
+            environment.createPackagePartProvider,
             { _, _ -> ScriptMutableDeclarationProviderFactory() }
         )
 

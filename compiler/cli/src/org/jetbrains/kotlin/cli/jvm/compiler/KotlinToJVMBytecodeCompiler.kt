@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.cli.jvm.compiler
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -233,7 +234,7 @@ object KotlinToJVMBytecodeCompiler {
             .singleOrNull { it != null }
     }
 
-    fun compileBunchOfSources(environment: KotlinCoreEnvironment): Boolean {
+    fun compileBunchOfSources(environment: KotlinCompilerEnvironment): Boolean {
         val moduleVisibilityManager = ModuleVisibilityManager.SERVICE.getInstance(environment.project)
 
         val friendPaths = environment.configuration.getList(JVMConfigurationKeys.FRIEND_PATHS)
@@ -277,7 +278,7 @@ object KotlinToJVMBytecodeCompiler {
 
     private fun repeatAnalysisIfNeeded(
         result: AnalysisResult?,
-        environment: KotlinCoreEnvironment,
+        environment: KotlinCompilerEnvironment,
         targetDescription: String?
     ): AnalysisResult? {
         if (result is AnalysisResult.RetryWithAdditionalJavaRoots) {
@@ -344,7 +345,7 @@ object KotlinToJVMBytecodeCompiler {
     }
 
     @Suppress("MemberVisibilityCanBePrivate") // Used in ExecuteKotlinScriptMojo
-    fun analyzeAndGenerate(environment: KotlinCoreEnvironment): GenerationState? {
+    fun analyzeAndGenerate(environment: KotlinCompilerEnvironment): GenerationState? {
         val result = repeatAnalysisIfNeeded(analyze(environment, null), environment, null) ?: return null
 
         if (!result.shouldGenerateCode) return null
@@ -354,7 +355,7 @@ object KotlinToJVMBytecodeCompiler {
         return generate(environment, environment.configuration, result, environment.getSourceFiles(), null)
     }
 
-    private fun analyze(environment: KotlinCoreEnvironment, targetDescription: String?): AnalysisResult? {
+    private fun analyze(environment: KotlinCompilerEnvironment, targetDescription: String?): AnalysisResult? {
         val sourceFiles = environment.getSourceFiles()
         val collector = environment.messageCollector
 
@@ -377,7 +378,7 @@ object KotlinToJVMBytecodeCompiler {
                 sourceFiles,
                 NoScopeRecordCliBindingTrace(),
                 environment.configuration,
-                environment::createPackagePartProvider,
+                environment.createPackagePartProvider,
                 sourceModuleSearchScope = scope
             )
         }
@@ -419,7 +420,7 @@ object KotlinToJVMBytecodeCompiler {
         }
 
     private fun generate(
-        environment: KotlinCoreEnvironment,
+        environment: KotlinCompilerEnvironment,
         configuration: CompilerConfiguration,
         result: AnalysisResult,
         sourceFiles: List<KtFile>,
@@ -469,6 +470,13 @@ object KotlinToJVMBytecodeCompiler {
         return generationState
     }
 
-    private val KotlinCoreEnvironment.messageCollector: MessageCollector
+    private val KotlinCompilerEnvironment.messageCollector: MessageCollector
         get() = configuration.getNotNull(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)
+
+    private fun KotlinCompilerEnvironment.countLinesOfCode(sourceFiles: List<KtFile>): Int =
+        sourceFiles.sumBy { sourceFile ->
+            val text = sourceFile.text
+            StringUtil.getLineBreakCount(text) + (if (StringUtil.endsWithLineBreak(text)) 0 else 1)
+        }
+
 }

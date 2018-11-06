@@ -196,7 +196,7 @@ public abstract class AbstractLoadJavaTest extends TestCaseWithTmpdir {
         registerJavacIfNeeded(environment);
         AnalysisResult result = TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(
                 environment.getProject(), environment.getSourceFiles(), new NoScopeRecordCliBindingTrace(),
-                configuration, environment::createPackagePartProvider
+                configuration, environment.getCreatePackagePartProvider()
         );
 
         PackageViewDescriptor packageView = result.getModuleDescriptor().getPackage(TEST_PACKAGE_FQNAME);

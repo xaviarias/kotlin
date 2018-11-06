@@ -118,12 +118,23 @@ import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
 import java.util.zip.ZipFile
 
+interface KotlinCompilerEnvironment {
+    val configuration: CompilerConfiguration
+    val project: Project
+
+    fun getSourceFiles(): List<KtFile>
+    fun updateClasspath(contentRoots: List<ContentRoot>): List<File>?
+    fun findLocalFile(path: String): VirtualFile?
+
+    val createPackagePartProvider: (GlobalSearchScope) -> JvmPackagePartProvider
+}
+
 class KotlinCoreEnvironment private constructor(
     parentDisposable: Disposable,
     applicationEnvironment: JavaCoreApplicationEnvironment,
     initialConfiguration: CompilerConfiguration,
     configFiles: EnvironmentConfigFiles
-) {
+) : KotlinCompilerEnvironment {
     private val projectEnvironment: JavaCoreProjectEnvironment =
         object : KotlinCoreProjectEnvironment(parentDisposable, applicationEnvironment) {
             override fun preregisterServices() {
@@ -167,7 +178,7 @@ class KotlinCoreEnvironment private constructor(
     private val classpathRootsResolver: ClasspathRootsResolver
     private val initialRoots: List<JavaRoot>
 
-    val configuration: CompilerConfiguration = initialConfiguration.apply { setupJdkClasspathRoots(configFiles) }.copy()
+    override val configuration: CompilerConfiguration = initialConfiguration.apply { setupJdkClasspathRoots(configFiles) }.copy()
 
     init {
         PersistentFSConstants::class.java.getDeclaredField("ourMaxIntellisenseFileSize")
@@ -314,8 +325,8 @@ class KotlinCoreEnvironment private constructor(
         })
     }
 
-    fun createPackagePartProvider(scope: GlobalSearchScope): JvmPackagePartProvider {
-        return JvmPackagePartProvider(configuration.languageVersionSettings, scope).apply {
+    override val createPackagePartProvider = { scope: GlobalSearchScope ->
+        JvmPackagePartProvider(configuration.languageVersionSettings, scope).apply {
             addRoots(initialRoots, configuration.getNotNull(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY))
             packagePartProviders += this
             (ModuleAnnotationsResolver.getInstance(project) as CliModuleAnnotationsResolver).addPackagePartProvider(this)
@@ -354,14 +365,8 @@ class KotlinCoreEnvironment private constructor(
     private val applicationEnvironment: CoreApplicationEnvironment
         get() = projectEnvironment.environment
 
-    val project: Project
+    override val project: Project
         get() = projectEnvironment.project
-
-    internal fun countLinesOfCode(sourceFiles: List<KtFile>): Int =
-        sourceFiles.sumBy { sourceFile ->
-            val text = sourceFile.text
-            StringUtil.getLineBreakCount(text) + (if (StringUtil.endsWithLineBreak(text)) 0 else 1)
-        }
 
     private fun updateClasspathFromRootsIndex(index: JvmDependenciesIndex) {
         index.indexedRoots.forEach {
@@ -369,7 +374,7 @@ class KotlinCoreEnvironment private constructor(
         }
     }
 
-    fun updateClasspath(contentRoots: List<ContentRoot>): List<File>? {
+    override fun updateClasspath(contentRoots: List<ContentRoot>): List<File>? {
         // TODO: add new Java modules to CliJavaModuleResolver
         val newRoots = classpathRootsResolver.convertClasspathRoots(contentRoots).roots
 
@@ -397,7 +402,7 @@ class KotlinCoreEnvironment private constructor(
                 throw IllegalStateException("Unexpected root: $root")
         }
 
-    internal fun findLocalFile(path: String): VirtualFile? =
+    override fun findLocalFile(path: String): VirtualFile? =
         applicationEnvironment.localFileSystem.findFileByPath(path)
 
     private fun findExistingRoot(root: JvmContentRoot, rootDescription: String): VirtualFile? {
@@ -425,7 +430,7 @@ class KotlinCoreEnvironment private constructor(
         return result
     }
 
-    fun getSourceFiles(): List<KtFile> = sourceFiles
+    override fun getSourceFiles(): List<KtFile> = sourceFiles
 
     private fun createKtFiles(project: Project): List<KtFile> {
         val sourceRoots = getSourceRootsCheckingForDuplicates()

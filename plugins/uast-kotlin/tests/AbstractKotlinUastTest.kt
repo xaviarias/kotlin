@@ -53,7 +53,7 @@ abstract class AbstractKotlinUastTest : AbstractUastTest() {
 
         val environment = kotlinCoreEnvironment!!
         TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(
-                project, environment.getSourceFiles(), trace, compilerConfiguration, environment::createPackagePartProvider
+                project, environment.getSourceFiles(), trace, compilerConfiguration, environment.createPackagePartProvider
         )
 
         val vfs = VirtualFileManager.getInstance().getFileSystem(URLUtil.FILE_PROTOCOL)
