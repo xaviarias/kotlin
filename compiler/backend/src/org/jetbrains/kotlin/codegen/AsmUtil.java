@@ -825,8 +825,8 @@ public class AsmUtil {
         }
 
         return StackValue.operation(Type.BOOLEAN_TYPE, v -> {
-            left.put(leftType, v);
-            right.put(rightType, v);
+            left.put(AsmTypes.OBJECT_TYPE, left.kotlinType, v);
+            right.put(AsmTypes.OBJECT_TYPE, right.kotlinType, v);
             genAreEqualCall(v);
 
             if (opToken == KtTokens.EXCLEQ || opToken == KtTokens.EXCLEQEQEQ) {
