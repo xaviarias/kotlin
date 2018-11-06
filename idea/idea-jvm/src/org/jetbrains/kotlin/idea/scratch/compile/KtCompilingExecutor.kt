@@ -23,6 +23,7 @@ import com.intellij.openapi.compiler.ex.CompilerPathsEx
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
+import com.intellij.openapi.projectRoots.JdkUtil
 import com.intellij.openapi.roots.OrderEnumerator
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiElement
@@ -164,7 +165,12 @@ class KtCompilingExecutor(file: ScratchFile) : ScratchExecutor(file) {
         javaParameters.classPath.addAll(compiledModulePath)
         javaParameters.classPath.addAll(moduleDependencies)
 
-        return javaParameters.toCommandLine()
+        javaParameters.isUseClasspathJar = true
+        javaParameters.setUseDynamicClasspath(true)
+
+        LOG.printDebugMessage(javaParameters.classPath.pathsString)
+
+        return JdkUtil.setupJVMCommandLine(javaParameters)
     }
 
     private fun checkForErrors(psiFile: KtFile): Boolean {
