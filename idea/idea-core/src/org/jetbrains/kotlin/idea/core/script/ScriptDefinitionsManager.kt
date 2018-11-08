@@ -217,6 +217,10 @@ fun loadDefinitionsFromTemplates(
     val baseLoader = ScriptDefinitionContributor::class.java.classLoader
     val loader = if (classpath.isEmpty()) baseLoader else URLClassLoader(classpath.map { it.toURI().toURL() }.toTypedArray(), baseLoader)
 
+    val derived = Class.forName("kotlin.internal.jdk8.JDK8PlatformImplementations", true, loader)
+    val base = Class.forName("kotlin.internal.PlatformImplementations", true, loader)
+    check(base.isAssignableFrom(derived)) { "$base class should be assignable from $derived" }
+
     return templateClassNames.mapNotNull { templateClassName ->
         try {
             // TODO: drop class loading here - it should be handled downstream
