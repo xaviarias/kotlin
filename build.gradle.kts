@@ -107,7 +107,7 @@ extra["JDK_9"] = jdkPath("9")
 extra["JDK_10"] = jdkPath("10")
 extra["JDK_11"] = jdkPath("11")
 
-gradle.taskGraph.beforeTask() {
+gradle.taskGraph.beforeTask {
     checkJDK()
 }
 
@@ -116,10 +116,18 @@ fun checkJDK() {
     if (jdkChecked) {
         return
     }
-    var unpresentJdks = JdkMajorVersion.values().filter { it.isMandatory() }.map { it -> it.name }.filter { it == null || extra[it] == jdkNotFoundConst }.toList()
+
+    val unpresentJdks =
+        JdkMajorVersion.values()
+        .filter { it.isMandatory() }
+        .map { it -> it.name }
+        .filter { extra[it] == jdkNotFoundConst }
+
     if (!unpresentJdks.isEmpty()) {
-        throw GradleException("Please set environment variable${if (unpresentJdks.size > 1) "s" else ""}: ${unpresentJdks.joinToString()} to point to corresponding JDK installation.")
+        throw GradleException("Please set environment variable${if (unpresentJdks.size > 1) "s" else ""}: " +
+                                      "${unpresentJdks.joinToString(", ")} to point to corresponding JDK installation.")
     }
+
     jdkChecked = true
 }
 
