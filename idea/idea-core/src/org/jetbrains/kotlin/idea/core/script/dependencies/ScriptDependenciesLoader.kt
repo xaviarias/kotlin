@@ -43,7 +43,12 @@ abstract class ScriptDependenciesLoader(
             project: Project
         ) {
             val existingLoader = loaders[file]
-            if (existingLoader != null) return existingLoader.updateDependencies()
+            if (existingLoader != null) {
+                if (existingLoader.project == project && existingLoader.scriptDef == scriptDef) {
+                    return existingLoader.updateDependencies()
+                }
+                loaders.remove(file)
+            }
 
             val newLoader = when (scriptDef.dependencyResolver) {
                 is AsyncDependenciesResolver,
