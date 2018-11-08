@@ -19,6 +19,10 @@ import org.jetbrains.kotlin.idea.core.script.*
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.kotlin.script.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 import kotlin.script.experimental.dependencies.AsyncDependenciesResolver
 import kotlin.script.experimental.dependencies.DependenciesResolver
 
@@ -29,6 +33,9 @@ abstract class ScriptDependenciesLoader(
 ) {
     companion object {
         private val loaders = ConcurrentHashMap<VirtualFile, ScriptDependenciesLoader>()
+
+        private var backgroundTaskLock = ReentrantReadWriteLock()
+        private var backgroundTask: ScriptDependenciesLoaderBackgroundTask? = null
 
         fun updateDependencies(
             file: VirtualFile,
@@ -46,15 +53,51 @@ abstract class ScriptDependenciesLoader(
             loaders.put(file, newLoader)
             newLoader.updateDependencies()
         }
+
+        private class ScriptDependenciesLoaderBackgroundTask(project: Project) :
+            Task.Backgroundable(project, "Kotlin: Loading script dependencies...", true) {
+
+            private val sequence: ConcurrentLinkedQueue<ScriptDependenciesLoader> = ConcurrentLinkedQueue()
+            private var callback: () -> Unit = {}
+
+            override fun run(indicator: ProgressIndicator) {
+                while (sequence.isNotEmpty()) {
+                    sequence.poll().updateDependencies()
+                }
+                callback()
+            }
+
+            fun addTask(loader: ScriptDependenciesLoader) {
+                sequence.add(loader)
+            }
+
+            fun addCallback(callback: () -> Unit) {
+                this.callback = callback
+            }
+        }
     }
 
     fun updateDependencies() {
+        if (!shouldRunNewUpdate()) return
+
+        cancelUpdate()
+
         if (shouldUseBackgroundThread()) {
-            object : Task.Backgroundable(project, "Kotlin: Loading dependencies for ${file.name} ...", true) {
-                override fun run(indicator: ProgressIndicator) {
-                    loadDependencies()
+            val task = backgroundTaskLock.read { backgroundTask }
+            if (task != null) {
+                task.addTask(this)
+            } else {
+                backgroundTaskLock.write {
+                    backgroundTask = ScriptDependenciesLoaderBackgroundTask(project)
+                    backgroundTask?.addTask(this)
+                    backgroundTask?.addCallback {
+                        backgroundTaskLock.write {
+                            backgroundTask = null
+                        }
+                    }
+                    backgroundTask?.queue()
                 }
-            }.queue()
+            }
         } else {
             loadDependencies()
         }
@@ -64,12 +107,15 @@ abstract class ScriptDependenciesLoader(
     protected abstract fun shouldUseBackgroundThread(): Boolean
     protected abstract fun shouldShowNotification(): Boolean
 
-    protected val contentLoader = ScriptContentLoader(project)
+    protected open fun shouldRunNewUpdate(): Boolean = true
+    protected open fun cancelUpdate() {}
+
+    val contentLoader = ScriptContentLoader(project)
     protected val cache: ScriptDependenciesCache = ServiceManager.getService(project, ScriptDependenciesCache::class.java)
 
     private val reporter: ScriptReportSink = ServiceManager.getService(project, ScriptReportSink::class.java)
 
-    protected fun processResult(result: DependenciesResolver.ResolveResult) {
+    fun processResult(result: DependenciesResolver.ResolveResult) {
         loaders.remove(file)
 
         if (cache[file] == null) {

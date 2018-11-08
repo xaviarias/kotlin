@@ -25,11 +25,6 @@ class AsyncScriptDependenciesLoader(
 ) : ScriptDependenciesLoader(file, scriptDef, project) {
 
     override fun loadDependencies() {
-        if (!shouldSendNewRequest(lastRequest)) {
-            return
-        }
-
-        lastRequest?.cancel()
         lastRequest = sendRequest().stampBy(file)
 
         if (shouldUseBackgroundThread()) {
@@ -41,6 +36,14 @@ class AsyncScriptDependenciesLoader(
 
     override fun shouldUseBackgroundThread() = KotlinScriptingSettings.getInstance(project).isAutoReloadEnabled
     override fun shouldShowNotification(): Boolean = !KotlinScriptingSettings.getInstance(project).isAutoReloadEnabled
+
+    override fun shouldRunNewUpdate(): Boolean {
+        return shouldSendNewRequest(lastRequest)
+    }
+
+    override fun cancelUpdate() {
+        lastRequest?.cancel()
+    }
 
     private var lastRequest: ModStampedRequest? = null
 
