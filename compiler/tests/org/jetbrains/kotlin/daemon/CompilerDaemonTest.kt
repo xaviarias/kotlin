@@ -848,7 +848,7 @@ class CompilerDaemonTest : KotlinIntegrationTestBase() {
         }
     }
 
-    fun testDaemonCallbackConnectionProblems() {
+    fun ignore_testDaemonCallbackConnectionProblems() {
         withFlagFile(getTestName(true), ".alive") { flagFile ->
             val daemonOptions = makeTestDaemonOptions(getTestName(true))
 
