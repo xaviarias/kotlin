@@ -18,10 +18,13 @@ package org.jetbrains.kotlin.backend.jvm.codegen
 
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.descriptors.JvmDescriptorWithExtraFlags
+import org.jetbrains.kotlin.backend.jvm.lower.CallableReferenceLowering
 import org.jetbrains.kotlin.codegen.*
+import org.jetbrains.kotlin.codegen.AsmUtil.calculateInnerClassAccessFlags
 import org.jetbrains.kotlin.codegen.binding.CodegenBinding
 import org.jetbrains.kotlin.codegen.inline.DefaultSourceMapper
 import org.jetbrains.kotlin.codegen.inline.SourceMapper
+import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.util.dump
@@ -40,7 +43,8 @@ import org.jetbrains.org.objectweb.asm.Type
 open class ClassCodegen protected constructor(
     internal val irClass: IrClass,
     val context: JvmBackendContext,
-    private val parentClassCodegen: ClassCodegen? = null
+    private val parentClassCodegen: ClassCodegen? = null,
+    private val parentExpressionCodegen: ExpressionCodegen? = null //only for local classes
 ) : InnerClassConsumer {
 
     private val innerClasses = mutableListOf<ClassDescriptor>()
@@ -90,6 +94,8 @@ open class ClassCodegen protected constructor(
             generateDeclaration(it)
         }
 
+        writeEnclosingMethod()
+
         done()
     }
 
@@ -127,7 +133,7 @@ open class ClassCodegen protected constructor(
         }
     }
 
-    fun generateDeclaration(declaration: IrDeclaration) {
+    fun generateDeclaration(declaration: IrDeclaration, parentExpressionCodegen: ExpressionCodegen? = null) {
         when (declaration) {
             is IrField ->
                 generateField(declaration)
@@ -141,7 +147,7 @@ open class ClassCodegen protected constructor(
                 // skip
             }
             is IrClass -> {
-                ClassCodegen(declaration, context, this).generate()
+                ClassCodegen(declaration, context, this, parentExpressionCodegen).generate()
             }
             else -> throw RuntimeException("Unsupported declaration $declaration")
         }
@@ -188,6 +194,23 @@ open class ClassCodegen protected constructor(
 
         for (innerClass in innerClasses) {
             MemberCodegen.writeInnerClass(innerClass, typeMapper, visitor)
+        }
+    }
+
+    private fun writeEnclosingMethod() {
+        // Do not emit enclosing method in "light-classes mode" since currently we generate local light classes as if they're top level
+        if (!state.classBuilderMode.generateBodies) {
+            return
+        }
+
+        //JVMS7: A class must have an EnclosingMethod attribute if and only if it is a local class or an anonymous class.
+        parentExpressionCodegen?.let {
+            val method = typeMapper.mapSignatureSkipGeneric(it.irFunction.descriptor).takeIf { it.asmMethod.name != "<clinit>" }?.asmMethod
+            visitor.visitOuterClass(
+                typeMapper.classInternalName(parentClassCodegen!!.descriptor),
+                method?.name,
+                method?.descriptor
+            )
         }
     }
 
