@@ -23,13 +23,18 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.ui.components.panels.HorizontalLayout
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.caches.project.productionSourceInfo
+import org.jetbrains.kotlin.idea.caches.project.testSourceInfo
 import org.jetbrains.kotlin.idea.scratch.ScratchFile
 import org.jetbrains.kotlin.idea.scratch.ScratchFileLanguageProvider
 import org.jetbrains.kotlin.idea.scratch.actions.ClearScratchAction
@@ -131,7 +136,10 @@ class ScratchTopPanel private constructor(val scratchFile: ScratchFile) : JPanel
 
     private fun createModuleChooser(project: Project): ModulesComboBox {
         return ModulesComboBox().apply {
-            fillModules(project)
+            val allModules = ModuleManager.getInstance(project).modules
+            setModules(allModules.filter {
+                JavaModuleType.getModuleType() == ModuleType.get(it) && (it.productionSourceInfo() != null || it.testSourceInfo() != null)
+            })
         }
     }
 }
