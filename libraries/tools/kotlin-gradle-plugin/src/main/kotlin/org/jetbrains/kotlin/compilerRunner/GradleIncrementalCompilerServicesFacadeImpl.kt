@@ -9,7 +9,7 @@ import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.daemon.client.reportFromDaemon
-import org.jetbrains.kotlin.daemon.common.*
+import org.jetbrains.kotlin.daemon.common.impls.*
 import org.jetbrains.kotlin.gradle.plugin.kotlinDebug
 import java.io.Serializable
 import java.rmi.Remote

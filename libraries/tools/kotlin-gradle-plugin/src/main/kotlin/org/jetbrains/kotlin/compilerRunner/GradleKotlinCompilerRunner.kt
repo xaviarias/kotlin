@@ -33,6 +33,9 @@ import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.daemon.client.CompileServiceSession
 import org.jetbrains.kotlin.daemon.common.*
+import org.jetbrains.kotlin.daemon.common.impls.CompilationResultCategory
+import org.jetbrains.kotlin.daemon.common.impls.ReportCategory
+import org.jetbrains.kotlin.daemon.common.impls.ReportSeverity
 import org.jetbrains.kotlin.gradle.plugin.kotlinDebug
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.InspectClassesForMultiModuleIC
@@ -205,7 +208,9 @@ internal class GradleCompilerRunner(private val project: Project) : KotlinCompil
             return null
         }
 
-        val (daemon, sessionId) = connection
+        val (daemonNew, sessionId) = connection
+        // TODO : consider using new daemon with new coroutines (1.3 vs 1.2 problem)
+        val daemon = daemonNew.toRMI()
         val targetPlatform = when (compilerClassName) {
             K2JVM_COMPILER -> CompileService.TargetPlatform.JVM
             K2JS_COMPILER -> CompileService.TargetPlatform.JS
