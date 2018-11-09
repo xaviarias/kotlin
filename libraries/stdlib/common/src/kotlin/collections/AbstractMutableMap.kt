@@ -13,6 +13,7 @@ package kotlin.collections
  * @param K the type of map keys. The map is invariant on its key type.
  * @param V the type of map values. The map is invariant on its value type.
  */
+@SinceKotlin("1.3")
 public expect abstract class AbstractMutableMap<K, V> : MutableMap<K, V> {
     protected constructor()
 

@@ -10,6 +10,7 @@ package kotlin.collections
  *
  * @param E the type of elements contained in the collection. The collection is invariant on its element type.
  */
+@SinceKotlin("1.3")
 public expect abstract class AbstractMutableCollection<E> : MutableCollection<E> {
     protected constructor()
 
