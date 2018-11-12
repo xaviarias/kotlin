@@ -45,7 +45,7 @@ internal fun MethodNode.getParametersInfo(containingClass: ClassNode, isInnerCla
     val isEnumConstructor = (name == "<init>") && containingClass.isEnum()
     val startParameterIndex =
         if (isEnumConstructor) 2 else
-            if (isInnerClassMember && name == "<init>") 1 else 0
+            /*if (isInnerClassMember && name == "<init>") 1 else */0
 
     val parameterTypes = Type.getArgumentTypes(desc)
 
