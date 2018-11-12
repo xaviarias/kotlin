@@ -65,6 +65,8 @@ private val runtimeSourcesCommon = listOfKtFilesFrom(
 
     "libraries/stdlib/js/src/kotlin/currentBeMisc.kt",
 
+    "libraries/stdlib/js/src/kotlin/collectionsExternal.kt",
+
     // Full version is defined in stdlib
     // This file is useful for smaller subset of runtime sources
     "libraries/stdlib/js/irRuntime/rangeExtensions.kt",
