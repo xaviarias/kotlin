@@ -14,10 +14,5 @@ internal fun deleteProperty(obj: Any, property: Any) {
     js("delete obj[property]")
 }
 
-internal fun charToString(c: dynamic) = js("String.fromCharCode(c)").unsafeCast<String>()
-
 @Suppress("UNUSED_PARAMETER")
-internal fun arrayToString(array: Array<*>): String {
-    return array.map { toString(it) }.joinToString(",", "[", "]")
-//    return "[" + Array.prototype.map.call(a, function(e) { return toString(e); }).join(", ") + "]";
-}
+internal fun arrayToString(array: Array<*>) = array.map { toString(it) }.joinToString(",", "[", "]")
