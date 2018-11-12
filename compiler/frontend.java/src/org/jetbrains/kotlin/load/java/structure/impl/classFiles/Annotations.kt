@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jetbrains.org.objectweb.asm.*
+import java.lang.RuntimeException
 import java.lang.reflect.Array
 
 internal class AnnotationsAndParameterCollectorMethodVisitor(
@@ -63,11 +64,19 @@ internal class AnnotationsAndParameterCollectorMethodVisitor(
         val index = if (Opcodes.API_VERSION <= Opcodes.ASM6) parameter - parametersToSkipNumber else parameter
         if (index < 0) return null
 
-        val annotations =
+        try {
+            val annotations =
                 member.valueParameters[index].annotations as MutableCollection<JavaAnnotation>?
-                ?: return null
+                    ?: return null
+
 
         return BinaryJavaAnnotation.addAnnotation(annotations, desc, context, signatureParser)
+        } catch (e: Throwable) {
+            throw RuntimeException(
+                "Asm : ${Opcodes.API_VERSION <= Opcodes.ASM6} ; ignore: ${parametersToSkipNumber} : member: ${member.name} : class : ${member.containingClass.fqName} constructor: ${member is BinaryJavaConstructor}",
+                e
+            )
+        }
     }
 
     override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, desc: String, visible: Boolean): AnnotationVisitor? {
