@@ -5,6 +5,7 @@
 
 package kotlin.collections
 
+import kotlin.comparisons.naturalOrder
 import kotlin.random.Random
 
 /** Returns the array if it's not `null`, or an empty array otherwise. */
