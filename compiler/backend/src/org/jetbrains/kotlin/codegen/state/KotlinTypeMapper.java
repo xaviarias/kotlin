@@ -43,14 +43,12 @@ import org.jetbrains.kotlin.load.kotlin.*;
 import org.jetbrains.kotlin.load.kotlin.incremental.IncrementalPackageFragmentProvider.IncrementalMultifileClassPackageFragment;
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmBytecodeBinaryVersion;
 import org.jetbrains.kotlin.name.*;
-import org.jetbrains.kotlin.psi.KtExpression;
-import org.jetbrains.kotlin.psi.KtFile;
-import org.jetbrains.kotlin.psi.KtFunctionLiteral;
-import org.jetbrains.kotlin.psi.KtLambdaExpression;
+import org.jetbrains.kotlin.psi.*;
 import org.jetbrains.kotlin.resolve.*;
 import org.jetbrains.kotlin.resolve.calls.model.DefaultValueArgument;
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall;
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument;
+import org.jetbrains.kotlin.resolve.calls.model.VarargValueArgument;
 import org.jetbrains.kotlin.resolve.descriptorUtil.DescriptorUtilsKt;
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodGenericSignature;
@@ -783,7 +781,12 @@ public class KotlinTypeMapper {
     }
 
     @NotNull
-    public CallableMethod mapToCallableMethod(@NotNull FunctionDescriptor descriptor, boolean superCall, @Nullable OwnerKind kind) {
+    public CallableMethod mapToCallableMethod(
+            @NotNull FunctionDescriptor descriptor,
+            @Nullable ResolvedCall<?> resolvedCall,
+            boolean superCall,
+            @Nullable OwnerKind kind
+    ) {
         // we generate constructors of inline classes as usual functions
         if (descriptor instanceof ConstructorDescriptor && kind != OwnerKind.ERASED_INLINE_CLASS) {
             JvmMethodSignature method = mapSignatureSkipGeneric(descriptor.getOriginal());
@@ -895,7 +898,7 @@ public class KotlinTypeMapper {
 
                 signature = toInlinedErasedClass
                             ? mapSignatureForInlineErasedClassSkipGeneric(functionToCall)
-                            : mapSignatureSkipGeneric(functionToCall);
+                            : mapSignature(functionToCall, resolvedCall, OwnerKind.IMPLEMENTATION, true, false);
                 returnKotlinType = functionToCall.getReturnType();
 
                 ClassDescriptor receiver = (currentIsInterface && !originalIsInterface) || currentOwner instanceof FunctionClassDescriptor
@@ -954,6 +957,11 @@ public class KotlinTypeMapper {
                 jvmTarget.compareTo(JvmTarget.JVM_1_8) >= 0 ? isInterfaceMember : invokeOpcode == INVOKEINTERFACE,
                 isDefaultMethodInInterface
         );
+    }
+
+    @NotNull
+    public CallableMethod mapToCallableMethod(@NotNull FunctionDescriptor descriptor, boolean superCall, @Nullable OwnerKind kind) {
+        return mapToCallableMethod(descriptor, null, superCall, kind);
     }
 
     @NotNull
@@ -1206,17 +1214,20 @@ public class KotlinTypeMapper {
     }
 
     @NotNull
-    public JvmMethodGenericSignature mapSignatureWithGeneric(@NotNull FunctionDescriptor f, @NotNull OwnerKind kind, boolean hasSpecialBridge) {
-        return mapSignature(f, kind, false, hasSpecialBridge);
+    public JvmMethodGenericSignature mapSignatureWithGeneric(
+            @NotNull FunctionDescriptor f, @NotNull OwnerKind kind, boolean hasSpecialBridge
+    ) {
+        return mapSignature(f, null, kind, false, hasSpecialBridge);
     }
 
     private JvmMethodGenericSignature mapSignature(@NotNull FunctionDescriptor f, @NotNull OwnerKind kind, boolean skipGenericSignature) {
-        return mapSignature(f, kind, skipGenericSignature, false);
+        return mapSignature(f, null, kind, skipGenericSignature, false);
     }
 
     @NotNull
     private JvmMethodGenericSignature mapSignature(
             @NotNull FunctionDescriptor f,
+            @Nullable ResolvedCall<?> resolvedCall,
             @NotNull OwnerKind kind,
             boolean skipGenericSignature,
             boolean hasSpecialBridge
@@ -1245,13 +1256,63 @@ public class KotlinTypeMapper {
         if (isDeclarationOfBigArityFunctionInvoke(f) || isDeclarationOfBigArityCreateCoroutineMethod(f)) {
             KotlinBuiltIns builtIns = DescriptorUtilsKt.getBuiltIns(f);
             KotlinType arrayOfNullableAny = builtIns.getArrayType(Variance.INVARIANT, builtIns.getNullableAnyType());
-            return mapSignatureWithCustomParameters(f, kind, Stream.of(arrayOfNullableAny), false, false);
+            return mapSignatureWithCustomParameters(f, kind, Stream.of(arrayOfNullableAny), null, false, false);
         }
 
-        return mapSignatureWithCustomParameters(
-                f, kind, f.getValueParameters().stream().map(ValueParameterDescriptor::getType),
-                skipGenericSignature, hasSpecialBridge
-        );
+        if (JvmCodegenUtil.isPolymorphicSignature(f) && resolvedCall != null) {
+            /*
+            if (resolvedCall == null) {
+                throw new UnsupportedOperationException("Cannot determine polymorphic signature without a resolved call: " + f);
+            }
+            */
+            List<ResolvedValueArgument> valueArgumentsByIndex = resolvedCall.getValueArgumentsByIndex();
+            if (valueArgumentsByIndex == null ||
+                valueArgumentsByIndex.size() != 1 ||
+                !(valueArgumentsByIndex.get(0) instanceof VarargValueArgument)) {
+                throw new UnsupportedOperationException(
+                        "Polymorphic signature is only supported for methods with one vararg argument: " + f
+                );
+            }
+
+            VarargValueArgument argument = (VarargValueArgument) valueArgumentsByIndex.get(0);
+            Stream<KotlinType> parameterTypes = argument.getArguments().stream().map(arg -> {
+                KtExpression expression = arg.getArgumentExpression();
+                if (expression == null) {
+                    throw new UnsupportedOperationException("Polymorphic signature argument must be an expression: " + f);
+                }
+                return bindingContext.getType(expression);
+            });
+
+            if (!(resolvedCall.getCall().getCallElement() instanceof KtExpression)) {
+                throw new UnsupportedOperationException("Polymorphic signature method call must be an expression: " + f);
+            }
+            KtExpression expression = (KtExpression) resolvedCall.getCall().getCallElement();
+
+            // TODO: find an utility
+            while (true) {
+                PsiElement parent = expression.getParent();
+                if (parent instanceof KtQualifiedExpression && ((KtQualifiedExpression) parent).getSelectorExpression() == expression) {
+                    expression = (KtExpression) parent;
+                } else break;
+            }
+            while (true) {
+                PsiElement parent = expression.getParent();
+                if (parent instanceof KtParenthesizedExpression) {
+                    expression = (KtExpression) parent;
+                } else break;
+            }
+
+            // TODO: maybe only do this in case the original return type is Any (see compareAndSet, setVolatile)?
+            KotlinType returnType =
+                    expression.getParent() instanceof KtBinaryExpressionWithTypeRHS
+                    ? bindingContext.getType((KtExpression) expression.getParent())
+                    : null;
+
+            return mapSignatureWithCustomParameters(f, kind, parameterTypes, returnType, skipGenericSignature, hasSpecialBridge);
+        }
+
+        Stream<KotlinType> parameterTypes = f.getValueParameters().stream().map(ValueParameterDescriptor::getType);
+        return mapSignatureWithCustomParameters(f, kind, parameterTypes, null, skipGenericSignature, hasSpecialBridge);
     }
 
     @NotNull
@@ -1262,8 +1323,7 @@ public class KotlinTypeMapper {
             boolean skipGenericSignature
     ) {
         return mapSignatureWithCustomParameters(
-                f, kind, valueParameters.stream().map(ValueParameterDescriptor::getType),
-                skipGenericSignature, false
+                f, kind, valueParameters.stream().map(ValueParameterDescriptor::getType), null, skipGenericSignature, false
         );
     }
 
@@ -1272,6 +1332,7 @@ public class KotlinTypeMapper {
             @NotNull FunctionDescriptor f,
             @NotNull OwnerKind kind,
             @NotNull Stream<KotlinType> valueParameterTypes,
+            @Nullable KotlinType customReturnType,
             boolean skipGenericSignature,
             boolean hasSpecialBridge
     ) {
@@ -1335,7 +1396,12 @@ public class KotlinTypeMapper {
             });
 
             sw.writeReturnType();
-            mapReturnType(f, sw);
+            if (customReturnType != null) {
+                mapReturnType(f, sw, customReturnType);
+            }
+            else {
+                mapReturnType(f, sw);
+            }
             sw.writeReturnTypeEnd();
         }
 
