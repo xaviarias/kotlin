@@ -99,9 +99,8 @@ public actual fun CharArray.asList(): List<Char> {
  * If any of arrays contains itself on any nesting level the behavior is undefined.
  */
 @SinceKotlin("1.1")
-@library("arrayDeepEquals")
 public actual infix fun <T> Array<out T>.contentDeepEquals(other: Array<out T>): Boolean {
-    definedExternally
+    return contentDeepEqualsInternal(other)
 }
 
 /**
@@ -111,9 +110,8 @@ public actual infix fun <T> Array<out T>.contentDeepEquals(other: Array<out T>):
  * If any of arrays contains itself on any nesting level the behavior is undefined.
  */
 @SinceKotlin("1.1")
-@library("arrayDeepHashCode")
 public actual fun <T> Array<out T>.contentDeepHashCode(): Int {
-    definedExternally
+    return contentDeepHashCodeInternal()
 }
 
 /**
@@ -126,9 +124,8 @@ public actual fun <T> Array<out T>.contentDeepHashCode(): Int {
  * @sample samples.collections.Arrays.ContentOperations.contentDeepToString
  */
 @SinceKotlin("1.1")
-@library("arrayDeepToString")
 public actual fun <T> Array<out T>.contentDeepToString(): String {
-    definedExternally
+    return contentDeepToStringInternal()
 }
 
 /**
@@ -136,9 +133,8 @@ public actual fun <T> Array<out T>.contentDeepToString(): String {
  * i.e. contain the same number of the same elements in the same order.
  */
 @SinceKotlin("1.1")
-@library("arrayEquals")
 public actual infix fun <T> Array<out T>.contentEquals(other: Array<out T>): Boolean {
-    definedExternally
+    return contentEqualsInternal(other)
 }
 
 /**
@@ -146,9 +142,8 @@ public actual infix fun <T> Array<out T>.contentEquals(other: Array<out T>): Boo
  * i.e. contain the same number of the same elements in the same order.
  */
 @SinceKotlin("1.1")
-@library("arrayEquals")
 public actual infix fun ByteArray.contentEquals(other: ByteArray): Boolean {
-    definedExternally
+    return contentEqualsInternal(other)
 }
 
 /**
@@ -156,9 +151,8 @@ public actual infix fun ByteArray.contentEquals(other: ByteArray): Boolean {
  * i.e. contain the same number of the same elements in the same order.
  */
 @SinceKotlin("1.1")
-@library("arrayEquals")
 public actual infix fun ShortArray.contentEquals(other: ShortArray): Boolean {
-    definedExternally
+    return contentEqualsInternal(other)
 }
 
 /**
@@ -166,9 +160,8 @@ public actual infix fun ShortArray.contentEquals(other: ShortArray): Boolean {
  * i.e. contain the same number of the same elements in the same order.
  */
 @SinceKotlin("1.1")
-@library("arrayEquals")
 public actual infix fun IntArray.contentEquals(other: IntArray): Boolean {
-    definedExternally
+    return contentEqualsInternal(other)
 }
 
 /**
@@ -176,9 +169,8 @@ public actual infix fun IntArray.contentEquals(other: IntArray): Boolean {
  * i.e. contain the same number of the same elements in the same order.
  */
 @SinceKotlin("1.1")
-@library("arrayEquals")
 public actual infix fun LongArray.contentEquals(other: LongArray): Boolean {
-    definedExternally
+    return contentEqualsInternal(other)
 }
 
 /**
@@ -186,9 +178,8 @@ public actual infix fun LongArray.contentEquals(other: LongArray): Boolean {
  * i.e. contain the same number of the same elements in the same order.
  */
 @SinceKotlin("1.1")
-@library("arrayEquals")
 public actual infix fun FloatArray.contentEquals(other: FloatArray): Boolean {
-    definedExternally
+    return contentEqualsInternal(other)
 }
 
 /**
@@ -196,9 +187,8 @@ public actual infix fun FloatArray.contentEquals(other: FloatArray): Boolean {
  * i.e. contain the same number of the same elements in the same order.
  */
 @SinceKotlin("1.1")
-@library("arrayEquals")
 public actual infix fun DoubleArray.contentEquals(other: DoubleArray): Boolean {
-    definedExternally
+    return contentEqualsInternal(other)
 }
 
 /**
@@ -206,9 +196,8 @@ public actual infix fun DoubleArray.contentEquals(other: DoubleArray): Boolean {
  * i.e. contain the same number of the same elements in the same order.
  */
 @SinceKotlin("1.1")
-@library("arrayEquals")
 public actual infix fun BooleanArray.contentEquals(other: BooleanArray): Boolean {
-    definedExternally
+    return contentEqualsInternal(other)
 }
 
 /**
@@ -216,90 +205,80 @@ public actual infix fun BooleanArray.contentEquals(other: BooleanArray): Boolean
  * i.e. contain the same number of the same elements in the same order.
  */
 @SinceKotlin("1.1")
-@library("arrayEquals")
 public actual infix fun CharArray.contentEquals(other: CharArray): Boolean {
-    definedExternally
+    return contentEqualsInternal(other)
 }
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-@library("arrayHashCode")
 public actual fun <T> Array<out T>.contentHashCode(): Int {
-    definedExternally
+    return contentHashCodeInternal()
 }
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-@library("arrayHashCode")
 public actual fun ByteArray.contentHashCode(): Int {
-    definedExternally
+    return contentHashCodeInternal()
 }
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-@library("arrayHashCode")
 public actual fun ShortArray.contentHashCode(): Int {
-    definedExternally
+    return contentHashCodeInternal()
 }
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-@library("arrayHashCode")
 public actual fun IntArray.contentHashCode(): Int {
-    definedExternally
+    return contentHashCodeInternal()
 }
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-@library("arrayHashCode")
 public actual fun LongArray.contentHashCode(): Int {
-    definedExternally
+    return contentHashCodeInternal()
 }
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-@library("arrayHashCode")
 public actual fun FloatArray.contentHashCode(): Int {
-    definedExternally
+    return contentHashCodeInternal()
 }
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-@library("arrayHashCode")
 public actual fun DoubleArray.contentHashCode(): Int {
-    definedExternally
+    return contentHashCodeInternal()
 }
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-@library("arrayHashCode")
 public actual fun BooleanArray.contentHashCode(): Int {
-    definedExternally
+    return contentHashCodeInternal()
 }
 
 /**
  * Returns a hash code based on the contents of this array as if it is [List].
  */
 @SinceKotlin("1.1")
-@library("arrayHashCode")
 public actual fun CharArray.contentHashCode(): Int {
-    definedExternally
+    return contentHashCodeInternal()
 }
 
 /**
@@ -308,9 +287,8 @@ public actual fun CharArray.contentHashCode(): Int {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-@library("arrayToString")
 public actual fun <T> Array<out T>.contentToString(): String {
-    definedExternally
+    return contentToStringInternal()
 }
 
 /**
@@ -319,9 +297,8 @@ public actual fun <T> Array<out T>.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-@library("arrayToString")
 public actual fun ByteArray.contentToString(): String {
-    definedExternally
+    return contentToStringInternal()
 }
 
 /**
@@ -330,9 +307,8 @@ public actual fun ByteArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-@library("arrayToString")
 public actual fun ShortArray.contentToString(): String {
-    definedExternally
+    return contentToStringInternal()
 }
 
 /**
@@ -341,9 +317,8 @@ public actual fun ShortArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-@library("arrayToString")
 public actual fun IntArray.contentToString(): String {
-    definedExternally
+    return contentToStringInternal()
 }
 
 /**
@@ -352,9 +327,8 @@ public actual fun IntArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-@library("arrayToString")
 public actual fun LongArray.contentToString(): String {
-    definedExternally
+    return contentToStringInternal()
 }
 
 /**
@@ -363,9 +337,8 @@ public actual fun LongArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-@library("arrayToString")
 public actual fun FloatArray.contentToString(): String {
-    definedExternally
+    return contentToStringInternal()
 }
 
 /**
@@ -374,9 +347,8 @@ public actual fun FloatArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-@library("arrayToString")
 public actual fun DoubleArray.contentToString(): String {
-    definedExternally
+    return contentToStringInternal()
 }
 
 /**
@@ -385,9 +357,8 @@ public actual fun DoubleArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-@library("arrayToString")
 public actual fun BooleanArray.contentToString(): String {
-    definedExternally
+    return contentToStringInternal()
 }
 
 /**
@@ -396,9 +367,8 @@ public actual fun BooleanArray.contentToString(): String {
  * @sample samples.collections.Arrays.ContentOperations.contentToString
  */
 @SinceKotlin("1.1")
-@library("arrayToString")
 public actual fun CharArray.contentToString(): String {
-    definedExternally
+    return contentToStringInternal()
 }
 
 /**
@@ -1150,9 +1120,8 @@ public actual inline fun <T> Array<out T>.plusElement(element: T): Array<T> {
 /**
  * Sorts the array in-place.
  */
-@library("primitiveArraySort")
 public actual fun IntArray.sort(): Unit {
-    definedExternally
+    primitiveArraySortInternal()
 }
 
 /**
@@ -1166,41 +1135,36 @@ public actual fun LongArray.sort(): Unit {
 /**
  * Sorts the array in-place.
  */
-@library("primitiveArraySort")
 public actual fun ByteArray.sort(): Unit {
-    definedExternally
+    primitiveArraySortInternal()
 }
 
 /**
  * Sorts the array in-place.
  */
-@library("primitiveArraySort")
 public actual fun ShortArray.sort(): Unit {
-    definedExternally
+    primitiveArraySortInternal()
 }
 
 /**
  * Sorts the array in-place.
  */
-@library("primitiveArraySort")
 public actual fun DoubleArray.sort(): Unit {
-    definedExternally
+    primitiveArraySortInternal()
 }
 
 /**
  * Sorts the array in-place.
  */
-@library("primitiveArraySort")
 public actual fun FloatArray.sort(): Unit {
-    definedExternally
+    primitiveArraySortInternal()
 }
 
 /**
  * Sorts the array in-place.
  */
-@library("primitiveArraySort")
 public actual fun CharArray.sort(): Unit {
-    definedExternally
+    primitiveArraySortInternal()
 }
 
 /**

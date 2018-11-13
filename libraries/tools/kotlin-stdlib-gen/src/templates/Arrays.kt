@@ -83,8 +83,7 @@ object ArrayOps : TemplateGroupBase() {
         }
 
         on(Platform.JS) {
-            annotation("""@library("arrayEquals")""")
-            body { "definedExternally" }
+            body { "return contentEqualsInternal(other)" }
         }
     }
 
@@ -116,8 +115,7 @@ object ArrayOps : TemplateGroupBase() {
             }
         }
         on(Platform.JS) {
-            annotation("""@library("arrayDeepEquals")""")
-            body { "definedExternally" }
+            body { "return contentDeepEqualsInternal(other)" }
         }
     }
 
@@ -141,8 +139,7 @@ object ArrayOps : TemplateGroupBase() {
             body { "return java.util.Arrays.toString(this)" }
         }
         on(Platform.JS) {
-            annotation("""@library("arrayToString")""")
-            body { "definedExternally" }
+            body { "return contentToStringInternal()" }
         }
     }
 
@@ -174,8 +171,7 @@ object ArrayOps : TemplateGroupBase() {
             }
         }
         on(Platform.JS) {
-            annotation("""@library("arrayDeepToString")""")
-            body { "definedExternally" }
+            body { "return contentDeepToStringInternal()" }
         }
     }
 
@@ -196,8 +192,7 @@ object ArrayOps : TemplateGroupBase() {
             body { "return java.util.Arrays.hashCode(this)" }
         }
         on(Platform.JS) {
-            annotation("""@library("arrayHashCode")""")
-            body { "definedExternally" }
+            body { "return contentHashCodeInternal()" }
         }
     }
 
@@ -227,8 +222,7 @@ object ArrayOps : TemplateGroupBase() {
             }
         }
         on(Platform.JS) {
-            annotation("""@library("arrayDeepHashCode")""")
-            body { "definedExternally" }
+            body { "return contentDeepHashCodeInternal()" }
         }
     }
 
@@ -756,8 +750,7 @@ object ArrayOps : TemplateGroupBase() {
             }
             specialFor(ArraysOfPrimitives) {
                 if (primitive != PrimitiveType.Long) {
-                    annotation("""@library("primitiveArraySort")""")
-                    body { "definedExternally" }
+                    body { "primitiveArraySortInternal()" }
                 }
             }
         }
