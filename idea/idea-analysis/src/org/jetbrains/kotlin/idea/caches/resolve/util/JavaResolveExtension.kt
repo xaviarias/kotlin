@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.idea.caches.lightClasses.KtLightClassForDecompiledDeclaration
+import org.jetbrains.kotlin.idea.core.isAndroidSyntheticClass
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
@@ -105,10 +106,13 @@ fun PsiClass.resolveToDescriptor(
     return if (this is KtLightClass && this !is KtLightClassForDecompiledDeclaration) {
         val origin = this.kotlinOrigin ?: return null
         val declaration = declarationTranslator(origin) ?: return null
-        resolutionFacade.resolveToDescriptor(declaration)
+        resolutionFacade.resolveToDescriptor(declaration) as? ClassDescriptor
+    } else if (isAndroidSyntheticClass(this)) {
+        // Do not resolve to descriptors synthetic android classes for now
+        null
     } else {
         getJavaClassDescriptor(resolutionFacade)
-    } as? ClassDescriptor
+    }
 }
 
 private fun PsiElement.getJavaDescriptorResolver(resolutionFacade: ResolutionFacade): JavaDescriptorResolver? {

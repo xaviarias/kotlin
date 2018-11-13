@@ -25,7 +25,7 @@ fun findAndroidResourceClasses(expression: KtExpression): List<ClassDescriptor> 
     val classesByName = PsiShortNamesCache.getInstance(expression.project).getClassesByName("R", resolveScope)
 
     val probablyRClasses = classesByName.filter { klass: PsiClass ->
-        klass.containingFile?.originalFile?.virtualFile == null && klass is SyntheticElement && klass is LightElement
+        isAndroidSyntheticClass(klass)
     }
 
     if (probablyRClasses.isEmpty()) {
@@ -39,4 +39,9 @@ fun findAndroidResourceClasses(expression: KtExpression): List<ClassDescriptor> 
     return probablyRClasses.mapNotNull { klass ->
         javaDescriptorResolver.resolveClass(JavaClassImpl(klass))
     }
+}
+
+fun isAndroidSyntheticClass(psiClass: PsiClass): Boolean {
+    // TODO: provide a better way for such classes identification
+    return psiClass.containingFile?.originalFile?.virtualFile == null && psiClass is SyntheticElement && psiClass is LightElement
 }
