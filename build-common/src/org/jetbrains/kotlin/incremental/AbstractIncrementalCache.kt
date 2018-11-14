@@ -170,9 +170,16 @@ abstract class AbstractIncrementalCache<ClassName>(workingDir: File) : BasicMaps
         val filesQueue = ArrayDeque(dirtyFiles)
         while (filesQueue.isNotEmpty()) {
             val file = filesQueue.pollFirst()
-            complementaryFilesMap.remove(file).filterTo(filesQueue) { complementaryFiles.add(it) }
+            complementaryFilesMap[file].forEach {
+                if (complementaryFiles.add(it)) {
+                    filesQueue.add(it)
+                }
+            }
         }
         complementaryFiles.removeAll(dirtyFiles)
+        complementaryFiles.forEach {
+            complementaryFilesMap.remove(it)
+        }
         return complementaryFiles
     }
 
